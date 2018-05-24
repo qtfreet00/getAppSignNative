@@ -1,6 +1,5 @@
 #include <jni.h>
 #include <string>
-#include "pkcs7.h"
 #include "utils.h"
 
 using namespace std;

@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <sys/system_properties.h>
 #include <string>
+#include "pkcs7.h"
 
 using namespace std;
 

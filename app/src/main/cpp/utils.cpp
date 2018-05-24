@@ -4,7 +4,6 @@
 
 
 #include "utils.h"
-#include "pkcs7.h"
 
 
 char *utils::getProcessName() {
