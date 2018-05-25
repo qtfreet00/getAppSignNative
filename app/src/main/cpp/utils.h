@@ -19,9 +19,8 @@ using namespace std;
 
 class utils {
 public:
-    static string getAppPathOrigin(JNIEnv *env);
 
-    static char *getAppPathMaps();
+    static char *getAppPath();
 
     static string getSign(char *appPath);
 
@@ -33,11 +32,6 @@ private:
     static int native_get_int(const char *name);
 
     static string native_get(const char *name);
-
-    static jobject getGlobalContext(JNIEnv *env);
-
-    static string getPackageResourcePath(JNIEnv *env, jobject context);
-
 
 };
 

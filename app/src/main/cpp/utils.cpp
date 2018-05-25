@@ -63,7 +63,7 @@ int utils::isOreo() {
     return 0;
 }
 
-char *utils::getAppPathMaps() {
+char *utils::getAppPath() {
     char *processName = getProcessName();
     if (!processName) {
         return NULL;
@@ -72,7 +72,7 @@ char *utils::getAppPathMaps() {
     int status;
     if (isOreo()) {
         status = regcomp(&re,
-                         "^/data/app/[a-zA-Z0-9]+(.[a-zA-Z0-9]+)+-(.[a-zA-Z0-9-_=]+)+(/base)?.apk$",
+                         "^/data/app/[a-zA-Z0-9]+(.[a-zA-Z0-9]+)+-([a-zA-Z0-9\\-_=]+)+(/base)?.apk$",
                          REG_EBRACE);
     } else {
         status = regcomp(&re, "^/data/app/[a-zA-Z0-9]+(.[a-zA-Z0-9]+)+-[0-9]+(/base)?.apk$",
@@ -111,74 +111,6 @@ char *utils::getAppPathMaps() {
     return NULL;
 }
 
-jobject utils::getGlobalContext(JNIEnv *env) {
-    jclass activityThread = env->FindClass("android/app/ActivityThread");
-    jmethodID currentActivityThread = env->GetStaticMethodID(activityThread,
-                                                             "currentActivityThread",
-                                                             "()Landroid/app/ActivityThread;");
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        env->DeleteLocalRef(activityThread);
-        return NULL;
-    }
-    jobject at = env->CallStaticObjectMethod(activityThread, currentActivityThread);
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        env->DeleteLocalRef(activityThread);
-        return NULL;
-    }
-    jmethodID getApplication = env->GetMethodID(activityThread, "getApplication",
-                                                "()Landroid/app/Application;");
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        env->DeleteLocalRef(activityThread);
-        env->DeleteLocalRef(at);
-        return NULL;
-    }
-    jobject context = env->CallObjectMethod(at, getApplication);
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        env->DeleteLocalRef(activityThread);
-        env->DeleteLocalRef(at);
-        return NULL;
-    }
-    env->DeleteLocalRef(activityThread);
-    env->DeleteLocalRef(at);
-    return context;
-}
-
-string utils::getPackageResourcePath(JNIEnv *env, jobject context) {
-    jclass clazz = env->GetObjectClass(context);
-    jmethodID resPathMid = env->GetMethodID(clazz, "getPackageResourcePath",
-                                            "()Ljava/lang/String;");
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        env->DeleteLocalRef(clazz);
-        return "";
-    }
-    jstring resPath = (jstring) env->CallObjectMethod(context, resPathMid);
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        env->DeleteLocalRef(clazz);
-        return "";
-    }
-    const char *resPathStr = env->GetStringUTFChars(resPath, false);
-    string appPath(resPathStr);
-    env->DeleteLocalRef(clazz);
-    env->ReleaseStringUTFChars(resPath, resPathStr);
-    return appPath;
-}
-
-string utils::getAppPathOrigin(JNIEnv *env) {
-    jobject context = getGlobalContext(env);
-    if (!context) {
-        return "";
-    }
-    string path_origin = getPackageResourcePath(env, context);
-    env->DeleteLocalRef(context);
-    return path_origin;
-}
-
 string utils::getSign(char *appPath) {
     pkcs7 pk;
     string sign;
@@ -190,6 +122,6 @@ string utils::getSign(char *appPath) {
             return sign;
         }
     }
-    return "";
+    return string();
 }
 
