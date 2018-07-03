@@ -10,10 +10,6 @@
 #include "3rd/zlib/unzip.h"
 #include "3rd/zlib/zip.h"
 
-#	define    STRCASECMP        strcasecmp
-#	define  FUNCTION_NAME  __func__
-
-
 #define TAG_INTEGER    0x02
 #define TAG_BITSTRING    0x03
 #define TAG_OCTETSTRING 0x04
@@ -56,8 +52,6 @@ private:
 
     int get_length(unsigned char lenbyte, int pos);
 
-    int put_length(unsigned char *buffer, int length);
-
     bool get_from_apk(char *file_name);
 
     bool get_content(char *file_name);
@@ -73,8 +67,6 @@ private:
     bool parse_certificate(int level);
 
     bool parse_signerInfo(int level);
-
-    bool parse_time(element *p_val);
 
 
 private:

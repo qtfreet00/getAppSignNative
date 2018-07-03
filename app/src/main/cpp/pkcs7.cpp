@@ -92,9 +92,9 @@ bool pkcs7::get_from_apk(char *file_name) {
         }
         if (name_len > 13) {// "META-INF/*.RSA"
             if ((!strncmp(filename_inzip, "META-INF/", 9)) &&
-                (!STRCASECMP(filename_inzip + name_len - 4, ".RSA") ||
-                 !STRCASECMP(filename_inzip + name_len - 4, ".DSA") ||
-                 !STRCASECMP(filename_inzip + name_len - 3, ".EC"))) {
+                (!strcasecmp(filename_inzip + name_len - 4, ".RSA") ||
+                 !strcasecmp(filename_inzip + name_len - 4, ".DSA") ||
+                 !strcasecmp(filename_inzip + name_len - 3, ".EC"))) {
                 cert_file = (char *) malloc(sizeof(char) * (name_len + 1));
                 strcpy(cert_file, filename_inzip);
                 break;
@@ -135,19 +135,23 @@ bool pkcs7::get_content(char *file_name) {
     size_t name_len = strlen(file_name);
     if (name_len < 4)
         return false;
-    if (!STRCASECMP(file_name + name_len - 4, ".RSA") ||
-        !STRCASECMP(file_name + name_len - 4, ".DSA") ||
-        !STRCASECMP(file_name + name_len - 3, ".EC")) {
+    if (!strcasecmp(file_name + name_len - 4, ".RSA") ||
+        !strcasecmp(file_name + name_len - 4, ".DSA") ||
+        !strcasecmp(file_name + name_len - 3, ".EC")) {
         FILE *f = fopen(file_name, "rb");
         if (f == NULL)
             return false;
         fseek(f, 0, SEEK_END);
-        m_length = ftell(f);
-        if (m_length == -1)
+        m_length = (int) ftell(f);
+        if (m_length == -1) {
+            fclose(f);
             return false;
+        }
         fseek(f, 0, SEEK_SET);
         m_content = (unsigned char *) malloc(sizeof(unsigned char) * m_length);
-        return fread(m_content, 1, (size_t) m_length, f) == m_length;
+        bool match = fread(m_content, 1, (size_t) m_length, f) == m_length;
+        fclose(f);
+        return match;
     }
     return get_from_apk(file_name);
 }
@@ -196,28 +200,6 @@ int pkcs7::tag_offset(element *p) {
 }
 
 /**
- * 将length转化DER结构的长度表示，存放在buffer位置
- *
- * 返回 写入字节的个数
-*/
-int pkcs7::put_length(unsigned char *buffer, int length) {
-    int lenbyte = num_from_len(length);
-    int ret = lenbyte;
-    if (lenbyte == 1)
-        buffer[0] = length;
-    else {
-        lenbyte--;
-        buffer[0] = 0x80 | lenbyte;
-        while (lenbyte) {
-            buffer[lenbyte] = length & 0xff;
-            lenbyte--;
-            length >>= 8;
-        }
-    }
-    return ret;
-}
-
-/**
  * 根据lenbyte计算长度信息，算法是 lenbyte最高位为1， 则lenbyte & 0x7F表示length的字节长度，后续字节使用大端方式存放
  * 最高位为0， lenbyte直接表示长度
  *
@@ -244,66 +226,6 @@ int pkcs7::get_length(unsigned char lenbyte, int offset) {
         len = lenbyte & 0xff;
     }
     return len;
-}
-
-/**
- * 解析证书中的日期信息
- */
-bool pkcs7::parse_time(element *p_val) {
-    if (p_val == NULL || strcmp(p_val->name, "validity") || p_val->tag != TAG_SEQUENCE)
-        return false;
-    int pos = p_val->begin;
-    unsigned char tag;
-    int len, base;
-    int year, month, day, hour, minute, second;
-    for (int i = 0; i < 2; i++) {
-        tag = m_content[pos++];
-        len = m_content[pos++];
-        base = pos;
-        if (tag != TAG_UTCTIME && tag != TAG_GENERALIZEDTIME)
-            return false;
-        if (tag == TAG_UTCTIME) {
-            if (len < 11 || len > 17)
-                return false;
-            year = 10 * (m_content[pos++] - '0');
-            year += (m_content[pos++] - '0');
-            if (year < 50)
-                year += 2000;
-            else
-                year += 1900;
-
-        } else if (tag == TAG_GENERALIZEDTIME) {
-            if (len < 13 || len > 23)
-                return false;
-            year = 1000 * (m_content[pos++] - '0');
-            year += (100 * (m_content[pos++] - '0'));
-            year += (10 * (m_content[pos++] - '0'));
-            year += (m_content[pos++] - '0');
-        }
-        month = 10 * (m_content[pos++] - '0');
-        month += (m_content[pos++] - '0');
-
-        day = 10 * (m_content[pos++] - '0');
-        day += (m_content[pos++] - '0');
-
-        hour = 10 * (m_content[pos++] - '0');
-        hour += (m_content[pos++] - '0');
-
-        minute = 10 * (m_content[pos++] - '0');
-        minute += (m_content[pos++] - '0');
-
-        if (len - pos + base > 2) {
-            second = 10 * (m_content[pos++] - '0');
-            second += (m_content[pos++] - '0');
-        }
-        pos = base + len;
-        if (i == 0)
-            printf("Not Before: ");
-        else
-            printf("Not After : ");
-        printf("%d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second);
-    }
-    return true;
 }
 
 /**
@@ -520,7 +442,7 @@ bool pkcs7::parse_content(int level) {
         }
         p_cert = tail;
         bool ret = parse_certificate(level + 1);
-        if (ret == false) {
+        if (!ret) {
             return ret;
         }
     }
