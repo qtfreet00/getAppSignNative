@@ -27,7 +27,7 @@ public:
 private:
     static char *getProcessName();
 
-    static int isOreo();
+    static bool isOreo();
 
     static int native_get_int(const char *name);
 

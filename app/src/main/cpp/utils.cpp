@@ -1,8 +1,7 @@
 //
 // Created by qtfreet00 on 2018/5/24.
 //
-
-
+#include <libgen.h>
 #include "utils.h"
 
 
@@ -46,28 +45,29 @@ string utils::native_get(const char *name) {
     return string(value);
 }
 
-int utils::isOreo() {
+bool utils::isOreo() {
     int osVer = native_get_int("ro.build.version.sdk");
     if (osVer != 0) {
         if (osVer >= 25) {
             if (osVer >= 26) {
-                return 1;
+                return true;
             } else if (osVer == 25) {
                 string version = native_get("ro.build.version.release");
                 if (version.compare("O") == 0) {
-                    return 1;
+                    return true;
                 }
             }
         }
     }
-    return 0;
+    return false;
 }
 
 char *utils::getAppPath() {
-    char *processName = getProcessName();
-    if (!processName) {
+    char *name = getProcessName();
+    if (!name) {
         return NULL;
     }
+    size_t length = strlen(name);
     regex_t re;
     int status;
     if (isOreo()) {
@@ -79,12 +79,12 @@ char *utils::getAppPath() {
                          REG_EBRACE);
     }
     if (status) {
-        free(processName);
+        free(name);
         return NULL;
     }
     FILE *fp = fopen("/proc/self/maps", "r");
     if (!fp) {
-        free(processName);
+        free(name);
         return NULL;
     }
     char buffer[256] = {0};
@@ -92,16 +92,19 @@ char *utils::getAppPath() {
     regmatch_t pmatch;
     bool find = false;
     while (fgets(buffer, 256, fp)) {
-        if (sscanf(buffer, "%*llx-%*llx %*s %*s %*s %*s %s", path) == 1) {
-            if (regexec(&re, path, 1, &pmatch, 0) == 0 && strstr(path, processName)) {
-                find = true;
-                break;
-            }
+        if (sscanf(buffer, "%*llx-%*llx %*s %*s %*s %*s %s", path) != 1) { continue; }
+        if (regexec(&re, path, 1, &pmatch, 0) != 0) { continue; }
+        char *package = strstr(path, name);
+        if (package == NULL) { continue; }
+        char t = *(package + length);
+        if (t == '-') {
+            find = true;
+            break;
         }
     }
     fclose(fp);
     regfree(&re);
-    free(processName);
+    free(name);
     if (find) {
         char *appPath = (char *) malloc(128);
         memset(appPath, 0, 128);
@@ -112,12 +115,11 @@ char *utils::getAppPath() {
 }
 
 string utils::getSign(char *appPath) {
-    pkcs7 pk;
-    string sign;
-    if (pk.open_file(appPath)) {
-        char *buff = pk.getSign();
+    pkcs7 signature;
+    if (signature.open_file(appPath)) {
+        char *buff = signature.toCharString();
         if (buff) {
-            sign.append(buff);
+            string sign(buff);
             free(buff);
             return sign;
         }

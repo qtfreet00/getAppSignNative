@@ -8,8 +8,6 @@ pkcs7::pkcs7() {
     head = tail = NULL;
     p_cert = p_signer = NULL;
     m_pos = m_length = 0;
-    apk_file = cert_file = NULL;
-
 }
 
 bool pkcs7::open_file(char *file_name) {
@@ -33,11 +31,9 @@ pkcs7::~pkcs7() {
         free(p);
         p = head;
     }
-    free(m_content);
-    if (apk_file != NULL)
-        free(apk_file);
-    if (cert_file != NULL)
-        free(cert_file);
+    if (m_content != NULL) {
+        free(m_content);
+    }
 }
 
 /**
@@ -64,8 +60,6 @@ bool pkcs7::get_from_apk(char *file_name) {
         printf("open apk file error!\n");
         return false;
     }
-    apk_file = (char *) malloc(sizeof(char) * (strlen(file_name) + 1));
-    strcpy(apk_file, file_name);
 
     unz_global_info64 gi;
     err = unzGetGlobalInfo64(uf, &gi);
@@ -95,8 +89,6 @@ bool pkcs7::get_from_apk(char *file_name) {
                 (!strcasecmp(filename_inzip + name_len - 4, ".RSA") ||
                  !strcasecmp(filename_inzip + name_len - 4, ".DSA") ||
                  !strcasecmp(filename_inzip + name_len - 3, ".EC"))) {
-                cert_file = (char *) malloc(sizeof(char) * (name_len + 1));
-                strcpy(cert_file, filename_inzip);
                 break;
             }
         }
@@ -184,20 +176,6 @@ int pkcs7::num_from_len(int len) {
     return num;
 }
 
-/**
- *每个element元素都是{tag, length, data}三元组，tag和length分别由tag和len保存，data是由[begin, begin+len)保存。
- *
- *该函数是从data位置计算出到tag位置的偏移值
- */
-int pkcs7::tag_offset(element *p) {
-    if (p == NULL)
-        return 0;
-    int offset = num_from_len(p->len);
-    if (m_content[p->begin - offset - 1] == p->tag)
-        return offset + 1;
-    else
-        return 0;
-}
 
 /**
  * 根据lenbyte计算长度信息，算法是 lenbyte最高位为1， 则lenbyte & 0x7F表示length的字节长度，后续字节使用大端方式存放
@@ -226,24 +204,6 @@ int pkcs7::get_length(unsigned char lenbyte, int offset) {
         len = lenbyte & 0xff;
     }
     return len;
-}
-
-/**
- *根据名字找到pkcs7中的元素, 若没有找到返回NULL.
- *name: 名字，可以只提供元素名字前面的字符
- *begin: 查找的开始位置
- */
-element *pkcs7::get_element(const char *name, element *begin) {
-    if (begin == NULL)
-        begin = head;
-    element *p = begin;
-    while (p != NULL) {
-        if (strncmp(p->name, name, strlen(name)) == 0)
-            return p;
-        p = p->next;
-    }
-    printf("not found the \"%s\"\n", name);
-    return p;
 }
 
 /**
@@ -296,7 +256,6 @@ bool pkcs7::parse_certificate(int level) {
             "signatureValue"};
     int len = 0;
     unsigned char tag;
-    bool have_version = false;
     len = create_element(TAG_SEQUENCE, names[0], level);
     if (len == -1 || m_pos + len > m_length) {
         return false;
@@ -311,7 +270,6 @@ bool pkcs7::parse_certificate(int level) {
             return false;
         }
         m_pos += len;
-        have_version = true;
     }
 
     for (int i = 2; i < 11; i++) {
@@ -393,8 +351,7 @@ bool pkcs7::parse_signerInfo(int level) {
         }
         m_pos += len;
     }
-    int ret = (m_pos == m_length ? 1 : 0);
-    return true;
+    return m_pos == m_length;
 }
 
 /**
@@ -412,7 +369,6 @@ bool pkcs7::parse_content(int level) {
 
     unsigned char tag;
     int len = 0;
-    element *p = NULL;
     //version
     len = create_element(TAG_INTEGER, names[0], level);
     if (len == -1 || m_pos + len > m_length) {
@@ -499,8 +455,6 @@ bool pkcs7::parse_pkcs7() {
         return false;
     }
     m_pos += len;
-    //optional
-    tag = m_content[m_pos++];
     lenbyte = m_content[m_pos];
     m_pos += len_num(lenbyte);
     //content-[optional]
@@ -513,9 +467,8 @@ bool pkcs7::parse_pkcs7() {
 }
 
 
-char *pkcs7::getSign() {
-    element *p = head;
-    element *e = get_element("certificates-[optional]", p);
+char *pkcs7::toCharString() {
+    element *e = p_cert;
     if (!e) {
         return NULL;
     }

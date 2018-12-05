@@ -41,14 +41,12 @@ public:
 
     bool open_file(char *file_name);
 
-    char *getSign();
+    char *toCharString();
 
 private:
     int len_num(unsigned char lenbyte);
 
     int num_from_len(int len);
-
-    int tag_offset(element *p);
 
     int get_length(unsigned char lenbyte, int pos);
 
@@ -57,8 +55,6 @@ private:
     bool get_content(char *file_name);
 
     int create_element(unsigned char tag, char *name, int level);
-
-    element *get_element(const char *name, element *begin);
 
     bool parse_content(int level);
 
@@ -77,9 +73,6 @@ private:
     struct element *tail;
     struct element *p_cert;
     struct element *p_signer;
-
-    char *apk_file;
-    char *cert_file;
 };
 
 
