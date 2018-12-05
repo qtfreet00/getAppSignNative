@@ -455,6 +455,8 @@ bool pkcs7::parse_pkcs7() {
         return false;
     }
     m_pos += len;
+    //optional
+    tag = m_content[m_pos++];
     lenbyte = m_content[m_pos];
     m_pos += len_num(lenbyte);
     //content-[optional]
