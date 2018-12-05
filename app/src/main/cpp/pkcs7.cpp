@@ -457,6 +457,10 @@ bool pkcs7::parse_pkcs7() {
     m_pos += len;
     //optional
     tag = m_content[m_pos++];
+    if (tag != TAG_OPTIONAL) {
+        printf("not found the Tag Content!\n");
+        return false;
+    }
     lenbyte = m_content[m_pos];
     m_pos += len_num(lenbyte);
     //content-[optional]
@@ -482,7 +486,11 @@ char *pkcs7::toCharString() {
     if (len <= 0 || begin <= 0 || len + begin > m_length) { return NULL; }
     char *sign = (char *) malloc((2 * len + 1) * sizeof(char));
     for (int i = 0; i < len; i++) {
-        sprintf(sign + 2 * i, "%02x", m_content[begin + i]);
+        unsigned char v = m_content[begin + i];
+        int d = (v >> 4) & 0xf;
+        sign[i * 2] = (char) (d >= 10 ? ('a' + d - 10) : ('0' + d));
+        d = v & 0xf;
+        sign[i * 2 + 1] = (char) (d >= 10 ? ('a' + d - 10) : ('0' + d));
     }
     sign[2 * len] = '\0';
     return sign;
