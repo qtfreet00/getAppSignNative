@@ -43,6 +43,10 @@ public:
 
     char *toCharString();
 
+    unsigned char *toByteArray();
+
+    int hashCode();
+
 private:
     int len_num(unsigned char lenbyte);
 

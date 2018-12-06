@@ -495,3 +495,41 @@ char *pkcs7::toCharString() {
     sign[2 * len] = '\0';
     return sign;
 }
+
+unsigned char *pkcs7::toByteArray() {
+    element *e = p_cert;
+    if (!e) {
+        return NULL;
+    }
+    int len = 0;
+    int begin = 0;
+    int lenByte = num_from_len(e->len); //考虑证书长度，如果小于0x7f，则只有1位，否则会有一个0x8x的标志位，用来标识长度
+    len = e->len + 1 + lenByte;
+    begin = e->begin - 1 - lenByte;
+    if (len <= 0 || begin <= 0 || len + begin > m_length) { return NULL; }
+    unsigned char *sign = (unsigned char *) malloc((len + 1) * sizeof(unsigned char));
+    for (int i = 0; i < len; i++) {
+        sign[i] = m_content[begin + i];
+    }
+    sign[len] = '\0';
+    return sign;
+}
+
+
+int pkcs7::hashCode() {
+    element *e = p_cert;
+    if (!e) {
+        return 0;
+    }
+    int len = 0;
+    int begin = 0;
+    int lenByte = num_from_len(e->len); //考虑证书长度，如果小于0x7f，则只有1位，否则会有一个0x8x的标志位，用来标识长度
+    len = e->len + 1 + lenByte;
+    begin = e->begin - 1 - lenByte;
+    if (len <= 0 || begin <= 0 || len + begin > m_length) { return 0; }
+    int result = 1;
+    for (int i = 0; i < len; i++) {
+        result = 31 * result + m_content[begin + i];
+    }
+    return result;
+}
