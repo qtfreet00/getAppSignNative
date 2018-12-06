@@ -37,7 +37,7 @@ jbyteArray getSignToByteArray(JNIEnv *env, jclass) {
             return NULL;
         }
         jbyteArray array = env->NewByteArray(size);
-        env->SetByteArrayRegion(array, 0, size, reinterpret_cast<const jbyte *>(sign));
+        env->SetByteArrayRegion(array, 0, size, sign);
         return array;
     }
     return NULL;

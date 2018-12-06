@@ -95,8 +95,8 @@ char *utils::getAppPath() {
         if (regexec(&re, path, 1, &pmatch, 0) != 0) { continue; }
         char *package = strstr(path, name);
         if (package == NULL) { continue; }
-        char t = *(package + length);
-        if (t == '-') {
+        char next = *(package + length);
+        if (next == '-') {
             find = true;
             break;
         }
