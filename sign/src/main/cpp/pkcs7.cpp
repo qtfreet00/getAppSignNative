@@ -209,7 +209,7 @@ int pkcs7::get_length(unsigned char lenbyte, int offset) {
 /**
  * 创建element.pkcs7中的每个元素都有对应element.
  */
-int pkcs7::create_element(unsigned char tag, char *name, int level) {
+int pkcs7::create_element(unsigned char tag, const char *name, int level) {
     unsigned char get_tag = m_content[m_pos++];
     if (get_tag != tag) {
         m_pos--;
@@ -240,7 +240,7 @@ int pkcs7::create_element(unsigned char tag, char *name, int level) {
  * 解析证书信息
  */
 bool pkcs7::parse_certificate(int level) {
-    char *names[] = {
+    const char *names[] = {
             "tbsCertificate",
             "version",
             "serialNumber",
@@ -315,7 +315,7 @@ bool pkcs7::parse_certificate(int level) {
  * 解析签名者信息
  */
 bool pkcs7::parse_signerInfo(int level) {
-    char *names[] = {
+    const char *names[] = {
             "version",
             "issuerAndSerialNumber",
             "digestAlgorithmId",
@@ -359,13 +359,13 @@ bool pkcs7::parse_signerInfo(int level) {
  */
 bool pkcs7::parse_content(int level) {
 
-    char *names[] = {"version",
-                     "DigestAlgorithms",
-                     "contentInfo",
-                     "certificates-[optional]",
-                     "crls-[optional]",
-                     "signerInfos",
-                     "signerInfo"};
+    const char *names[] = {"version",
+                           "DigestAlgorithms",
+                           "contentInfo",
+                           "certificates-[optional]",
+                           "crls-[optional]",
+                           "signerInfos",
+                           "signerInfo"};
 
     unsigned char tag;
     int len = 0;

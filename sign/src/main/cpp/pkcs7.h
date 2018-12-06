@@ -58,7 +58,7 @@ private:
 
     bool get_content(char *file_name);
 
-    int create_element(unsigned char tag, char *name, int level);
+    int create_element(unsigned char tag,const char *name, int level);
 
     bool parse_content(int level);
 
