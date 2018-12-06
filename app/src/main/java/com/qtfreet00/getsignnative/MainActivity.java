@@ -26,7 +26,8 @@ public class MainActivity extends AppCompatActivity {
         Log.e("qtfreet00", getSignHashCode() + "");
         Log.e("qtfreet00", Signature.toHashCode() + "");
         boolean d = getSignCharString().equals(Signature.toCharString());
-        tv.setText("签名:  " + a + "  " + b + "  " + c + "  " + d);
+        String appPath = Signature.getAppPath();
+        tv.setText("签名:  " + a + "  " + b + "  " + c + "  " + d + "   \n" + appPath);
     }
 
     private String getSignCharString() {
