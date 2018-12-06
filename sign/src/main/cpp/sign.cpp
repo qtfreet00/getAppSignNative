@@ -4,7 +4,7 @@
 
 using namespace std;
 
-static const char *JNI_CLASS = "com/msarlab/library/sign/SignHelper";
+static const char *JNI_CLASS = "com/msarlab/library/security/Signature";
 
 static bool checkException(JNIEnv *env) {
     if (env->ExceptionOccurred()) {

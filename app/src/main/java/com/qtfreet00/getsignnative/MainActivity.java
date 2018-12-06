@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
-import com.msarlab.library.sign.SignHelper;
+import com.msarlab.library.security.Signature;
 
 import java.util.Arrays;
 
@@ -18,14 +18,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TextView tv = (TextView) findViewById(R.id.sample_text);
-        boolean a = getSignCharString().equals(SignHelper.toCharString());
-        boolean b = Arrays.equals(getSignByteArray(), SignHelper.toByteArray());
+        boolean a = getSignCharString().equals(Signature.toCharString());
+        boolean b = Arrays.equals(getSignByteArray(), Signature.toByteArray());
         Log.e("qtfreet00", Arrays.toString(getSignByteArray()));
-        Log.e("qtfreet00", Arrays.toString(SignHelper.toByteArray()));
-        boolean c = getSignHashCode() == SignHelper.toHashCode();
+        Log.e("qtfreet00", Arrays.toString(Signature.toByteArray()));
+        boolean c = getSignHashCode() == Signature.toHashCode();
         Log.e("qtfreet00", getSignHashCode() + "");
-        Log.e("qtfreet00", SignHelper.toHashCode() + "");
-        boolean d = getSignCharString().equals(SignHelper.toCharString());
+        Log.e("qtfreet00", Signature.toHashCode() + "");
+        boolean d = getSignCharString().equals(Signature.toCharString());
         tv.setText("签名:  " + a + "  " + b + "  " + c + "  " + d);
     }
 

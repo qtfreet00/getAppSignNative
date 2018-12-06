@@ -1,6 +1,6 @@
-package com.msarlab.library.sign;
+package com.msarlab.library.security;
 
-public class SignHelper {
+public class Signature {
 
     static {
         System.loadLibrary("msarlab_sign");
