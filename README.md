@@ -1,12 +1,8 @@
 #### Android获取签名
 
-pkcs7 解析参考 ：https://github.com/W-WTerDan/pkcs7
+不依赖任何java api直接获取app签名。
 
-原项目对pkcs7文件格式进行了解析
-
-Android 4.x-P 不依赖java api直接获取app签名。
-
-支持常规的Java中获取签名的方式
+支持如下签名方式
 
 ```
     private String getSignCharString() {
@@ -38,7 +34,7 @@ Android 4.x-P 不依赖java api直接获取app签名。
     }
 ```
 
-对应的Jni实现
+对应Jni实现
 
 ```
 Signature.toCharString()
@@ -49,3 +45,7 @@ Signature.toHashCode()
 ```
 
 代码写的比较粗糙，有更好的方法或者存在bug欢迎提出
+
+##### 参考：
+
+pkcs7文件解析 ：https://github.com/W-WTerDan/pkcs7
