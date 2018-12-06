@@ -43,7 +43,7 @@ public:
 
     char *toCharString();
 
-    unsigned char *toByteArray();
+    signed char *toByteArray(int *size);
 
     int hashCode();
 

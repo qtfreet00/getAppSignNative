@@ -4,7 +4,6 @@
 #include <libgen.h>
 #include "utils.h"
 
-
 char *utils::getProcessName() {
     char *buffer = (char *) malloc(128);
     memset(buffer, 0, 128);
@@ -114,7 +113,7 @@ char *utils::getAppPath() {
     return NULL;
 }
 
-string utils::getSign(char *appPath) {
+string utils::getSignToCharString(char *appPath) {
     pkcs7 signature;
     if (signature.open_file(appPath)) {
         char *buff = signature.toCharString();
@@ -127,3 +126,21 @@ string utils::getSign(char *appPath) {
     return string();
 }
 
+signed char *utils::getSignToByteArray(char *appPath, int *size) {
+    pkcs7 signature;
+    if (signature.open_file(appPath)) {
+        signed char *array = signature.toByteArray(size);
+        return array;
+    }
+    return NULL;
+}
+
+
+int utils::getSignHashCode(char *appPath) {
+    pkcs7 signature;
+    if (signature.open_file(appPath)) {
+        int hashcode = signature.hashCode();
+        return hashcode;
+    }
+    return 0;
+}

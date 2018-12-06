@@ -496,7 +496,7 @@ char *pkcs7::toCharString() {
     return sign;
 }
 
-unsigned char *pkcs7::toByteArray() {
+signed char *pkcs7::toByteArray(int *size) {
     element *e = p_cert;
     if (!e) {
         return NULL;
@@ -507,11 +507,10 @@ unsigned char *pkcs7::toByteArray() {
     len = e->len + 1 + lenByte;
     begin = e->begin - 1 - lenByte;
     if (len <= 0 || begin <= 0 || len + begin > m_length) { return NULL; }
-    unsigned char *sign = (unsigned char *) malloc((len + 1) * sizeof(unsigned char));
-    for (int i = 0; i < len; i++) {
-        sign[i] = m_content[begin + i];
-    }
+    signed char *sign = (signed char *) malloc((len + 1) * sizeof(signed char));
+    memcpy(sign, m_content + begin, static_cast<size_t>(len));
     sign[len] = '\0';
+    *size = len;
     return sign;
 }
 
@@ -529,7 +528,8 @@ int pkcs7::hashCode() {
     if (len <= 0 || begin <= 0 || len + begin > m_length) { return 0; }
     int result = 1;
     for (int i = 0; i < len; i++) {
-        result = 31 * result + m_content[begin + i];
+        signed char d = m_content[begin + i];
+        result = 31 * result + d;
     }
     return result;
 }

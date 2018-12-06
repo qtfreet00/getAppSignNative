@@ -22,7 +22,11 @@ public:
 
     static char *getAppPath();
 
-    static string getSign(char *appPath);
+    static string getSignToCharString(char *appPath);
+
+    static signed char *getSignToByteArray(char *appPath, int *size);
+
+    static jint getSignHashCode(char *appPath);
 
 private:
     static char *getProcessName();
@@ -32,7 +36,6 @@ private:
     static int native_get_int(const char *name);
 
     static string native_get(const char *name);
-
 };
 
 
