@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.4.1)
 
 
 set(SOURCE src/main/cpp/pkcs7.cpp
-        src/main/cpp/signHelper.cpp
+        src/main/cpp/helper.cpp
            src/main/cpp/3rd/zlib/adler32.c
            src/main/cpp/3rd/zlib/crc32.c
            src/main/cpp/3rd/zlib/deflate.c

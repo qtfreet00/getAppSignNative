@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <string>
-#include "signHelper.h"
+#include "helper.h"
 
 using namespace std;
 

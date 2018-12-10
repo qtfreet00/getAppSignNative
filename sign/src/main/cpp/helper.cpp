@@ -1,7 +1,7 @@
 //
 // Created by qtfreet00 on 2018/5/24.
 //
-#include "signHelper.h"
+#include "helper.h"
 
 char *signHelper::getProcessName() {
     char *buffer = (char *) malloc(128);
