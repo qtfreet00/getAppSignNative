@@ -483,6 +483,9 @@ char *pkcs7::toCharString() {
     int begin = e->begin - 1 - lenByte;
     if (len <= 0 || begin <= 0 || len + begin > m_length) { return NULL; }
     char *sign = (char *) malloc((2 * len + 1) * sizeof(char));
+    if (!sign) {
+        return NULL;
+    }
     for (int i = 0; i < len; i++) {
         unsigned char v = m_content[begin + i];
         int d = (v >> 4) & 0xf;
@@ -504,6 +507,9 @@ signed char *pkcs7::toByteArray(int *size) {
     int begin = e->begin - 1 - lenByte;
     if (len <= 0 || begin <= 0 || len + begin > m_length) { return NULL; }
     signed char *sign = (signed char *) malloc((len + 1) * sizeof(signed char));
+    if (!sign) {
+        return NULL;
+    }
     memcpy(sign, m_content + begin, static_cast<size_t>(len));
     sign[len] = '\0';
     *size = len;

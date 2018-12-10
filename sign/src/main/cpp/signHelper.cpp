@@ -1,10 +1,9 @@
 //
 // Created by qtfreet00 on 2018/5/24.
 //
-#include <libgen.h>
-#include "utils.h"
+#include "signHelper.h"
 
-char *utils::getProcessName() {
+char *signHelper::getProcessName() {
     char *buffer = (char *) malloc(128);
     memset(buffer, 0, 128);
     int fd = open("/proc/self/cmdline", O_RDONLY);
@@ -19,7 +18,7 @@ char *utils::getProcessName() {
     return NULL;
 }
 
-int utils::native_get_int(const char *name) {
+int signHelper::native_get_int(const char *name) {
     char value[PROP_VALUE_MAX];
     int len = 0;
     char *end;
@@ -36,7 +35,7 @@ int utils::native_get_int(const char *name) {
     return result;
 }
 
-string utils::native_get(const char *name) {
+string signHelper::native_get(const char *name) {
     char value[PROP_VALUE_MAX];
     if (name != NULL) {
         __system_property_get(name, value);
@@ -44,7 +43,7 @@ string utils::native_get(const char *name) {
     return string(value);
 }
 
-bool utils::isOreo() {
+bool signHelper::isOreo() {
     int osVer = native_get_int("ro.build.version.sdk");
     if (osVer != 0) {
         if (osVer >= 25) {
@@ -61,7 +60,17 @@ bool utils::isOreo() {
     return false;
 }
 
-char *utils::getAppPath() {
+int signHelper::startsWith(const char *str, const char *suffix) {
+    if (!str || !suffix)
+        return 0;
+    size_t lenA = strlen(str),
+            lenB = strlen(suffix);
+    if (lenB > lenA)
+        return 0;
+    return strncmp(str, suffix, lenB) == 0;
+}
+
+char *signHelper::getAppPath() {
     char *name = getProcessName();
     if (!name) {
         return NULL;
@@ -86,15 +95,18 @@ char *utils::getAppPath() {
         free(name);
         return NULL;
     }
+    size_t index = strlen("/data/app/");
     char buffer[256] = {0};
     char path[180] = {0};
-    regmatch_t pmatch;
+    regmatch_t rm;
     bool find = false;
     while (fgets(buffer, 256, fp)) {
         if (sscanf(buffer, "%*llx-%*llx %*s %*s %*s %*s %s", path) != 1) { continue; }
-        if (regexec(&re, path, 1, &pmatch, 0) != 0) { continue; }
-        char *package = strstr(path, name);
-        if (package == NULL) { continue; }
+        if (regexec(&re, path, 1, &rm, 0) != 0) { continue; }
+        char *package = path + index;
+        if (!startsWith(package, name)) {
+            continue;
+        }
         char next = *(package + length);
         if (next == '-') {
             find = true;
@@ -113,20 +125,16 @@ char *utils::getAppPath() {
     return NULL;
 }
 
-string utils::getSignToCharString(char *appPath) {
+char *signHelper::getSignToCharString(char *appPath) {
     pkcs7 signature;
     if (signature.open_file(appPath)) {
         char *buff = signature.toCharString();
-        if (buff) {
-            string sign(buff);
-            free(buff);
-            return sign;
-        }
+        return buff;
     }
-    return string();
+    return NULL;
 }
 
-signed char *utils::getSignToByteArray(char *appPath, int *size) {
+signed char *signHelper::getSignToByteArray(char *appPath, int *size) {
     pkcs7 signature;
     if (signature.open_file(appPath)) {
         signed char *array = signature.toByteArray(size);
@@ -136,7 +144,7 @@ signed char *utils::getSignToByteArray(char *appPath, int *size) {
 }
 
 
-int utils::getSignHashCode(char *appPath) {
+int signHelper::getSignHashCode(char *appPath) {
     pkcs7 signature;
     if (signature.open_file(appPath)) {
         int hashcode = signature.hashCode();

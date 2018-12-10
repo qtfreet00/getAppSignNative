@@ -17,12 +17,12 @@
 
 using namespace std;
 
-class utils {
+class signHelper {
 public:
 
     static char *getAppPath();
 
-    static string getSignToCharString(char *appPath);
+    static char *getSignToCharString(char *appPath);
 
     static signed char *getSignToByteArray(char *appPath, int *size);
 
@@ -36,6 +36,8 @@ private:
     static int native_get_int(const char *name);
 
     static string native_get(const char *name);
+
+    static int startsWith(const char *str, const char *suffix);
 };
 
 

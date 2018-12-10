@@ -1,68 +1,76 @@
 #include <jni.h>
 #include <string>
-#include "utils.h"
+#include "signHelper.h"
 
 using namespace std;
 
 static const char *JNI_CLASS = "com/msarlab/library/security/Signature";
 
-static bool checkException(JNIEnv *env) {
-    if (env->ExceptionOccurred()) {
-        env->ExceptionClear();
-        return true;
+namespace JavaExp {
+
+    bool checkException(JNIEnv *env) {
+        if (env->ExceptionOccurred()) {
+            env->ExceptionClear();
+            return true;
+        }
+        return false;
     }
-    return false;
 }
 
 extern "C" {
 
 
 jstring getSignToCharString(JNIEnv *env, jclass) {
-    char *path = utils::getAppPath();
-    if (path) {
-        string sign = utils::getSignToCharString(path);
-        free(path);
-        return env->NewStringUTF(sign.c_str());
+    char *path = signHelper::getAppPath();
+    if (!path) {
+        return NULL;
     }
-    return NULL;
+    char *sign = signHelper::getSignToCharString(path);
+    free(path);
+    if (!sign) {
+        return NULL;
+    }
+    string toString(sign);
+    free(sign);
+    return env->NewStringUTF(toString.c_str());
 }
 
 jbyteArray getSignToByteArray(JNIEnv *env, jclass) {
-    char *path = utils::getAppPath();
-    if (path) {
-        int size = 0;
-        signed char *sign = utils::getSignToByteArray(path, &size);
-        free(path);
-        if (size == 0) {
-            return NULL;
-        }
-        jbyteArray array = env->NewByteArray(size);
-        env->SetByteArrayRegion(array, 0, size, sign);
-        return array;
+    char *path = signHelper::getAppPath();
+    if (!path) {
+        return NULL;
     }
-    return NULL;
+    int size = 0;
+    signed char *sign = signHelper::getSignToByteArray(path, &size);
+    free(path);
+    if (size == 0) {
+        return NULL;
+    }
+    jbyteArray array = env->NewByteArray(size);
+    env->SetByteArrayRegion(array, 0, size, sign);
+    return array;
 }
 
 
 jint getSignHashCode(JNIEnv *env, jclass) {
-    char *path = utils::getAppPath();
-    if (path) {
-        int sign = utils::getSignHashCode(path);
-        free(path);
-        return sign;
+    char *path = signHelper::getAppPath();
+    if (!path) {
+        return 0;
     }
-    return 0;
+    int sign = signHelper::getSignHashCode(path);
+    free(path);
+    return sign;
 }
 
 
 jstring getAppPath(JNIEnv *env, jclass) {
-    char *path = utils::getAppPath();
-    if (path) {
-        string appPath(path);
-        free(path);
-        return env->NewStringUTF(appPath.c_str());
+    char *path = signHelper::getAppPath();
+    if (!path) {
+        return NULL;
     }
-    return NULL;
+    string appPath(path);
+    free(path);
+    return env->NewStringUTF(appPath.c_str());
 }
 
 static JNINativeMethod gMethods[] = {
@@ -76,7 +84,7 @@ static int registerNativeMethods(JNIEnv *env, const char *className,
                                  JNINativeMethod *gMethods, int numMethods) {
     jclass clazz;
     clazz = env->FindClass(className);
-    if (checkException(env) || clazz == NULL) {
+    if (JavaExp::checkException(env) || clazz == NULL) {
         return JNI_FALSE;
     }
 
